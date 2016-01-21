@@ -6,12 +6,12 @@ en:
           request: Error fetching TeamCity build types
         help:
           list:
-            syntax: \@buildbot list
+            syntax: "@buildbot list"
             desc: "Lists all possible builds you can trigger."
           build:
-            syntax: \@buildbot build `id`
+            syntax: "@buildbot build `id`"
             desc: "Triggers a master build for passed in build `id`."
-            prsyntax: \@buildbot build `pr#` for `id`
+            prsyntax: "@buildbot build `pr#` for `id`"
             prdesc: "Triggers a Pull Request build for passed in `pr#` and build `id`."
         buildtypes:
           empty: "Cannot find any builds to list!"
