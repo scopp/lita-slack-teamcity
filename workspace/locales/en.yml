@@ -6,13 +6,17 @@ en:
           request: Error fetching TeamCity build types
         help:
           list:
-            syntax: "@buildbot list"
+            syntax: "*@buildbot list*"
+            syntax_wild: "*@buildbot list `some_text*`*"
             desc: "Lists all possible builds you can trigger."
+            desc_wild: "Lists builds that match the case sensative wildcard by using `*`."
           build:
-            syntax: "@buildbot build `id`"
-            desc: "Triggers a master build for passed in build `id`."
-            prsyntax: "@buildbot build `pr#` for `id`"
-            prdesc: "Triggers a Pull Request build for passed in `pr#` and build `id`."
+            syntax: "*@buildbot build `id`*"
+            desc: "Triggers a master build for build `id`."
+            prsyntax: "*@buildbot build `pr#` for `id`*"
+            prdesc: "Triggers a PR build for passed in `pr#` and build `id`."
         buildtypes:
           empty: "Cannot find any builds to list!"
-          list: "%{build_types}\n Use the build `id` in order to trigger a build."
+          list: "Here are the builds I found:\n%{build_types}
+                    \n\nUse a build `id` from the list to trigger a build.
+                    *@buildbot build `id`*"

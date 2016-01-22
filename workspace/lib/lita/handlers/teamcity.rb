@@ -1,32 +1,26 @@
 
-
 # lita-teamcity plugin
 module Lita
-  # Because we can.
   module Handlers
     # Main handler
-    # rubocop:disable Metrics/ClassLength
     class Teamcity < Handler
       namespace 'Teamcity'
 
       config :site, required: true, type: String
       config :username, required: true, type: String, default: ''
       config :password, required: true, type: String, default: ''
-      config :project_grep, required: false, type: String, default: ''
 
       config :context, required: false, type: String, default: ''
       config :format, required: false, type: String, default: 'verbose'
       config :ignore, required: false, type: Array, default: []
       config :rooms, required: false, type: Array
 
-      #include ::Teamcityhelper::Regex
-
       PR_PATTERN      = /(?<pr>pr[0-9]{1,3})/
-      BUILD_ID_PATTERN = /(?<build_id>[a-zA-Z0-9\_]{4,100})/
+      BUILD_ID_PATTERN = /(?<build_id>[a-zA-Z0-9\_]{1,100})/
 
       route(
         /^list$/,
-        :list,
+        :list_all,
         command: true,
         help: {
           t('help.list.syntax') => t('help.list.desc')
@@ -34,11 +28,11 @@ module Lita
       )
 
       route(
-        /^build\s#{PR_PATTERN}\sfor\s#{BUILD_ID_PATTERN}$/,
-        :buildpr,
+        /^list\s#{BUILD_ID_PATTERN}\*$/,
+        :list_wild,
         command: true,
         help: {
-          t('help.build.prsyntax') => t('help.build.prdesc')
+          t('help.list.syntax_wild') => t('help.list.desc_wild')
         }
       )
 
@@ -51,9 +45,30 @@ module Lita
         }
       )
 
-      def list(response)
+      route(
+        /^build\s#{PR_PATTERN}\sfor\s#{BUILD_ID_PATTERN}$/,
+        :buildpr,
+        command: true,
+        help: {
+          t('help.build.prsyntax') => t('help.build.prdesc')
+        }
+      )
+
+      def list_all(response)
+        list(response, false)
+      end
+
+      def list_wild(response)
+        list(response, true)
+      end
+
+      def list(response, wildcard)
         begin
-          build_types = fetch_build_types()
+          if wildcard
+            build_types = fetch_build_types(response.match_data['build_id'])
+          else
+            build_types = fetch_build_types(nil)
+          end
         rescue
           log.error('TeamCity HTTPError')
           response.reply(t('error.request'))
@@ -119,7 +134,7 @@ module Lita
         return build_url
       end
 
-      def fetch_build_types()
+      def fetch_build_types(build_id_wildcard)
         response_str = ''
 
         http = Curl.get("#{config.site}/guestAuth/app/rest/buildTypes") do|http|
@@ -128,20 +143,19 @@ module Lita
         data = JSON.parse(http.body_str)
 
         data['buildType'].each do |build_type|
-          unless config.project_grep.nil?
-            config.project_grep.split(",").each do |str|
-              if build_type['projectName'] =~ /^#{str}/
-                response_str << "#{build_type['projectName']} :: id=`#{build_type['id']}`\n"
-              end
+          if build_id_wildcard
+            if build_type['id'].include? build_id_wildcard
+              response_str << "\n#{build_type['projectName']} :: id=`#{build_type['id']}`"
             end
+          else
+            response_str << "\n#{build_type['projectName']} :: id=`#{build_type['id']}`"
           end
         end
 
         return response_str
       end
-      # rubocop:enable Metrics/AbcSize
+
     end
-    # rubocop:enable Metrics/ClassLength
     Lita.register_handler(Teamcity)
   end
 end

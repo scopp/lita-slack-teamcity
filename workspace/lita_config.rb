@@ -39,6 +39,5 @@ Lita.configure do |config|
   config.handlers.teamcity.site             = ENV['TEAMCITY_SITE']
   config.handlers.teamcity.username         = ENV['TEAMCITY_USERNAME'] || ''
   config.handlers.teamcity.password         = ENV['TEAMCITY_PASSWORD'] || ''
-  config.handlers.teamcity.project_grep     = ENV['TEAMCITY_PROJECT_GREP'] || ''
 
 end
