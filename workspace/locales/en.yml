@@ -9,7 +9,7 @@ en:
             syntax: "*@buildbot list*"
             syntax_wild: "*@buildbot list `some_text*`*"
             desc: "Lists all possible builds you can trigger."
-            desc_wild: "Lists builds that match the case sensative wildcard by using `*`."
+            desc_wild: "Lists builds matching a case sensative wildcard search with `*`."
           build:
             syntax: "*@buildbot build `id`*"
             desc: "Triggers a master build for build `id`."
