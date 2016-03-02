@@ -85,9 +85,7 @@ module Lita
         end
 
         result = `cd #{repos_dir}/#{repo}/ && #{config.python_script}`
-        response.reply(t('git.commits'))
-        sleep(0.5)
-        response.reply("```#{result}```")
+        response.reply("*Commits to be cherry picked:* ```#{result}```")
       end
 
       def list_all(response)

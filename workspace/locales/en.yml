@@ -5,7 +5,6 @@ en:
         git:
           cloning: "I need to clone this repo, please wait..."
           fetching: "Fetching, please wait..."
-          commits: "*Commits to be cherry picked:*"
         error:
           request: Error fetching TeamCity build types
         help:
