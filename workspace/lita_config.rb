@@ -39,5 +39,7 @@ Lita.configure do |config|
   config.handlers.teamcity.site             = ENV['TEAMCITY_SITE']
   config.handlers.teamcity.username         = ENV['TEAMCITY_USERNAME'] || ''
   config.handlers.teamcity.password         = ENV['TEAMCITY_PASSWORD'] || ''
+  config.handlers.teamcity.git_uri          = ENV['GIT_URI'] || ''
+  config.handlers.teamcity.python_script    = ENV['PYTHON_SCRIPT'] || ''
 
 end

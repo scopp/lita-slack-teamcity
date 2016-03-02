@@ -2,19 +2,26 @@ en:
   lita:
     handlers:
       teamcity:
+        git:
+          cloning: "I need to clone this repo, please wait..."
+          fetching: "Fetching, please wait..."
+          commits: "*Commits to be cherry picked:*"
         error:
           request: Error fetching TeamCity build types
         help:
           list:
             syntax: "*@buildbot list*"
+            desc: "Lists all possible builds you can trigger"
             syntax_wild: "*@buildbot list `some_text*`*"
-            desc: "Lists all possible builds you can trigger."
-            desc_wild: "Lists builds matching a case sensative wildcard search with `*`."
+            desc_wild: "Lists builds matching a case sensative wildcard search with `*`"
           build:
             syntax: "*@buildbot build `id`*"
-            desc: "Triggers a master build for build `id`."
+            desc: "Triggers a master build for build `id`"
             prsyntax: "*@buildbot build `pr#` for `id`*"
-            prdesc: "Triggers a PR build for passed in `pr#` and build `id`."
+            prdesc: "Triggers a PR build for passed in `pr#` and build `id`"
+          cp_commits:
+            syntax: "*@buildbot cp_commits `<repo_name>`*"
+            desc: "Gets list of cherry picks to commit for `<repo>`"
         buildtypes:
           empty: "Cannot find any builds to list!"
           list: "Here are the builds I found:\n%{build_types}

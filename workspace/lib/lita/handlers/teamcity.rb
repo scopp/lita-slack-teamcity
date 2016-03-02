@@ -9,14 +9,17 @@ module Lita
       config :site, required: true, type: String
       config :username, required: true, type: String, default: ''
       config :password, required: true, type: String, default: ''
+      config :git_uri, required: true, type: String, default: ''
+      config :python_script, required: true, type: String, default: ''
 
       config :context, required: false, type: String, default: ''
       config :format, required: false, type: String, default: 'verbose'
       config :ignore, required: false, type: Array, default: []
       config :rooms, required: false, type: Array
 
-      PR_PATTERN      = /(?<pr>pr[0-9]{1,3})/
+      PR_PATTERN       = /(?<pr>pr[0-9]{1,3})/
       BUILD_ID_PATTERN = /(?<build_id>[a-zA-Z0-9\_]{1,100})/
+      REPO_PATTERN     = /(?<repo>.+)/
 
       route(
         /^list$/,
@@ -53,6 +56,39 @@ module Lita
           t('help.build.prsyntax') => t('help.build.prdesc')
         }
       )
+
+      route(
+        /^cp_commits\s+#{REPO_PATTERN}/,
+        :list_cps_to_commit,
+        command: true,
+        help: {
+          t('help.cp_commits.syntax') => t('help.build.desc')
+        }
+      )
+
+      def list_cps_to_commit(response)
+        repo = response.match_data['repo']
+        repo_uri = "#{config.git_uri}/#{repo}.git"
+        log.info "repo_uri : #{repo_uri}"
+
+        repos_dir = File.join(Dir.home, 'repos')
+        Dir.mkdir(repos_dir) unless File.exists? File.expand_path("#{repos_dir}")
+
+        if File.exists? File.expand_path("#{repos_dir}/#{repo}")
+          response.reply(t('git.fetching'))
+          log.info "command  : cd #{repos_dir}/#{repo}/ && git fetch -p"
+          result = `cd #{repos_dir}/#{repo}/ && git fetch -p`
+        else
+          response.reply(t('git.cloning'))
+          log.info "command  : cd #{repos_dir}/ && git clone #{repo_uri} #{repo}"
+          result = `cd #{repos_dir}/ && git clone #{repo_uri} #{repo}`
+        end
+
+        result = `cd #{repos_dir}/#{repo}/ && #{config.python_script}`
+        response.reply(t('git.commits'))
+        sleep(0.5)
+        response.reply("```#{result}```")
+      end
 
       def list_all(response)
         list(response, false)
