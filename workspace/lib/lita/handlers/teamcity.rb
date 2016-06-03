@@ -18,7 +18,8 @@ module Lita
       config :rooms, required: false, type: Array
 
       PR_PATTERN              = /(?<pr>pr[0-9]{1,3})/
-      BRANCH                  = /(?<branch>[a-zA-Z0-9\_]{1,100})/
+      REVISION_PATTERN        = /(?<revision>r[0-9]{1,3})/
+      BRANCH_PATTERN          = /(?<branch>[a-zA-Z0-9\_]{1,100})/
       BUILD_ID_PATTERN        = /(?<build_id>[a-zA-Z0-9\_]{1,100})/
       REPO_PATTERN            = /(?<repo>.+)/
 
@@ -59,7 +60,7 @@ module Lita
       )
 
       route(
-        /^build\s#{BUILD_ID_PATTERN}\s#{BRANCH}$/,
+        /^build\s#{BUILD_ID_PATTERN}\s#{BRANCH_PATTERN}$/,
         :build_branch,
         command: true,
         help: {
@@ -68,11 +69,29 @@ module Lita
       )
 
       route(
+        /^build\s#{REVISION_PATTERN}\sfor\s#{BUILD_ID_PATTERN}$/,
+        :build_revision,
+        command: true,
+        help: {
+          t('help.build.rsyntax') => t('help.build.rdesc')
+        }
+      )
+
+      route(
+        /^build\s#{REVISION_PATTERN}\sfor\s#{BUILD_ID_PATTERN}\s#{BRANCH_PATTERN}$/,
+        :build_branch_revision,
+        command: true,
+        help: {
+          t('help.build.brrsyntax') => t('help.build.brrdesc')
+        }
+      )
+
+      route(
         /^cp_commits\s+#{REPO_PATTERN}/,
         :list_cps_to_commit,
         command: true,
         help: {
-          t('help.cp_commits.syntax') => t('help.build.desc')
+          t('help.cp_commits.syntax') => t('help.cp_commits.desc')
         }
       )
 
@@ -137,7 +156,18 @@ module Lita
       def buildpr(response)
         build_id = response.match_data['build_id']
         pr_number = response.match_data['pr'].gsub('pr', '')
-        xml = build_pr_xml(pr_number, build_id)
+        xml = build_pr_xml(build_id, pr_number)
+
+        build_url = curl_build(xml)
+        response.reply("Build has been triggered: #{build_url}")
+      end
+
+      def build_revision(response)
+        build_id = response.match_data['build_id']
+        revision = response.match_data['revision'].gsub('r', '')
+        xml = build_master_revision_xml(build_id, revision)
+
+        log.info "#{xml}"
 
         build_url = curl_build(xml)
         response.reply("Build has been triggered: #{build_url}")
@@ -146,7 +176,19 @@ module Lita
       def build_branch(response)
         build_id = response.match_data['build_id']
         branch = response.match_data['branch']
-        xml = build_branch_xml(branch, build_id)
+        xml = build_branch_xml(build_id, branch)
+
+        log.info "#{xml}"
+
+        build_url = curl_build(xml)
+        response.reply("Build has been triggered: #{build_url}")
+      end
+
+      def build_branch_revision(response)
+        build_id = response.match_data['build_id']
+        branch = response.match_data['branch']
+        revision = response.match_data['revision'].gsub('r', '')
+        xml = build_branch_revision_xml(build_id, branch, revision)
 
         log.info "#{xml}"
 
@@ -164,6 +206,7 @@ module Lita
           b.buildType(:id=>"#{build_id}")
           b.properties do |p|
             p.property(:name=>"env.SVN_BRANCH", :value=>"trunk")
+            p.property(:name=>"env.SVN_REVISION", :value=>"HEAD")
           end
           b.comment do |c|
             c.text 'Triggering build from TeamCity Slack buildbot.'
@@ -171,7 +214,7 @@ module Lita
         end
       end
 
-      def build_pr_xml(pr_number, build_id)
+      def build_pr_xml(build_id, pr_number)
         xml = Builder::XmlMarkup.new( :indent => 2 )
         xml.build(:branchName=>"#{pr_number}/merge") do |b|
           b.buildType(:id=>"#{build_id}")
@@ -181,12 +224,41 @@ module Lita
         end
       end
 
-      def build_branch_xml(branch, build_id)
+      def build_master_revision_xml(build_id, revision)
+        xml = Builder::XmlMarkup.new( :indent => 2 )
+        xml.build do |b|
+          b.buildType(:id=>"#{build_id}")
+          b.properties do |p|
+            p.property(:name=>"env.SVN_BRANCH", :value=>"trunk")
+            p.property(:name=>"env.SVN_REVISION", :value=>"#{revision}")
+          end
+          b.comment do |c|
+            c.text 'Triggering build from TeamCity Slack buildbot.'
+          end
+        end
+      end
+
+      def build_branch_xml(build_id, branch)
         xml = Builder::XmlMarkup.new( :indent => 2 )
         xml.build do |b|
           b.buildType(:id=>"#{build_id}")
           b.properties do |p|
             p.property(:name=>"env.SVN_BRANCH", :value=>"branches/#{branch}")
+            p.property(:name=>"env.SVN_REVISION", :value=>"HEAD")
+          end
+          b.comment do |c|
+            c.text 'Triggering build from TeamCity Slack buildbot.'
+          end
+        end
+      end
+
+      def build_branch_revision_xml(build_id, branch, revision)
+        xml = Builder::XmlMarkup.new( :indent => 2 )
+        xml.build do |b|
+          b.buildType(:id=>"#{build_id}")
+          b.properties do |p|
+            p.property(:name=>"env.SVN_BRANCH", :value=>"branches/#{branch}")
+            p.property(:name=>"env.SVN_REVISION", :value=>"#{revision}")
           end
           b.comment do |c|
             c.text 'Triggering build from TeamCity Slack buildbot.'

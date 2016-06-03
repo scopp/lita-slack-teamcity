@@ -15,11 +15,15 @@ en:
             desc_wild: "Lists builds matching a case sensative wildcard search with `*`"
           build:
             syntax: "*@buildbot build `id`*"
-            desc: "Triggers a master build for build `id`"
+            desc: "Triggers a master/trunk build for build `id`"
             prsyntax: "*@buildbot build `pr#` for `id`*"
             prdesc: "Triggers a PR build for passed in `pr#` and build `id`"
+            rsyntax: "*@buildbot build `r#` for `id`*"
+            rdesc: "Triggers a svn trunk build for passed in revision `r#` and build `id`"
             brsyntax: "*@buildbot build `id` `svn_branch_name`*"
             brdesc: "Triggers a svn branch build for passed in branch and build `id`"
+            brrsyntax: "*@buildbot build `r#` for `id` `svn_branch_name`*"
+            brrdesc: "Triggers a svn branch build for passed in branch and revision `r#` and build `id`"
           cp_commits:
             syntax: "*@buildbot cp_commits `<repo_name>`*"
             desc: "Gets list of cherry picks to commit for `<repo>`"
