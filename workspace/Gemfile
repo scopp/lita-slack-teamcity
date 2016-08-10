@@ -5,6 +5,6 @@ gem 'curb'
 gem 'git'
 gem 'lita', '>=4.7.0'
 gem 'lita-slack'
-gem 'nokogiri', '>=1.6.8.rc3'
+gem 'nokogiri', '>=1.6.8'
 
 gemspec

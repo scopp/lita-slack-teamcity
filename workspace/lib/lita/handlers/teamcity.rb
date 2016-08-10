@@ -282,10 +282,14 @@ module Lita
       def fetch_build_types(build_id_wildcard)
         response_str = ''
 
-        http = Curl.get("#{config.site}/guestAuth/app/rest/buildTypes") do|http|
-          http.headers['Accept'] = 'application/json'
-        end
-        data = JSON.parse(http.body_str)
+        curl = Curl::Easy.new("#{config.site}/httpAuth/app/rest/buildTypes")
+        curl.http_auth_types = :basic
+        curl.username = config.username
+        curl.password = config.password
+        curl.headers["Accept"] = 'application/json'
+        curl.perform
+
+        data = JSON.parse(curl.body_str)
 
         data['buildType'].each do |build_type|
           if build_id_wildcard

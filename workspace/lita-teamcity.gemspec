@@ -14,7 +14,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_runtime_dependency 'lita'
-  spec.add_runtime_dependency 'curb'
+  spec.add_runtime_dependency 'curb' , '>= 0.9.3'
   spec.add_runtime_dependency 'eventmachine'
   spec.add_runtime_dependency 'faraday'
   spec.add_runtime_dependency 'faye-websocket', '>= 0.8.0'
