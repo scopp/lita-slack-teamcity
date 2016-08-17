@@ -17,8 +17,8 @@ module Lita
       config :ignore, required: false, type: Array, default: []
       config :rooms, required: false, type: Array
 
-      PR_PATTERN              = /(?<pr>pr[0-9]{1,3})/
-      REVISION_PATTERN        = /(?<revision>r[0-9]{1,3})/
+      PR_PATTERN              = /(?<pr>pr[0-9]{1,5})/
+      REVISION_PATTERN        = /(?<revision>r[0-9]{1,5})/
       BRANCH_PATTERN          = /(?<branch>[a-zA-Z0-9\_]{1,100})/
       BUILD_ID_PATTERN        = /(?<build_id>[a-zA-Z0-9\_]{1,100})/
       REPO_PATTERN            = /(?<repo>.+)/
