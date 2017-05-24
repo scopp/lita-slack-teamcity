@@ -27,8 +27,21 @@ en:
           cp_commits:
             syntax: "*@buildbot cp_commits `<repo_name>`*"
             desc: "Gets list of cherry picks to commit for `<repo>`"
+          running:
+            syntax: "*@buildbot running*"
+            desc: "Lists all running builds and their status"
+            syntax_wild: "*@buildbot running `some_text*`*"
+            desc_wild: "Lists running builds matching a case sensative wildcard search with `*`"
+          queue:
+            syntax: "*@buildbot queue*"
+            desc: "Lists all queued builds"
+            syntax_wild: "*@buildbot queue `some_text*`*"
+            desc_wild: "Lists queued builds matching a case sensative wildcard search with `*`"
         buildtypes:
           empty: "Cannot find any builds to list!"
           list: "Here are the builds I found:\n%{build_types}
                     \n\nUse a build `id` from the list to trigger a build.
                     *@buildbot build `id`*"
+        runningbuildtypes:
+          empty: "Cannot find any builds to list!"
+          list: "Here are the builds I found:\n%{runningbuildtypes}"

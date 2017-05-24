@@ -95,6 +95,42 @@ module Lita
         }
       )
 
+      route(
+        /^running$/,
+        :running_all,
+        command: true,
+        help: {
+          t('help.running.syntax') => t('help.running.desc')
+        }
+      )
+
+      route(
+        /^running\s#{BUILD_ID_PATTERN}\*$/,
+        :running_wild,
+        command: true,
+        help: {
+          t('help.running.syntax_wild') => t('help.running.desc_wild')
+        }
+      )
+
+      route(
+        /^queue$/,
+        :queue_all,
+        command: true,
+        help: {
+          t('help.queue.syntax') => t('help.queue.desc')
+        }
+      )
+
+      route(
+        /^queue\s#{BUILD_ID_PATTERN}\*$/,
+        :queue_wild,
+        command: true,
+        help: {
+          t('help.queue.syntax_wild') => t('help.queue.desc_wild')
+        }
+      )
+
       def list_cps_to_commit(response)
         repo = response.match_data['repo']
         repo_uri = "#{config.git_uri}/#{repo}.git"
@@ -194,6 +230,58 @@ module Lita
 
         build_url = curl_build(xml)
         response.reply("Build has been triggered: #{build_url}")
+      end
+
+      def running_all(response)
+        running(response, false)
+      end
+
+      def running_wild(response)
+        running(response, true)
+      end
+
+      def running(response, wildcard)
+        begin
+          if wildcard
+            build_types = fetch_running_build(response.match_data['build_id'])
+          else
+            build_types = fetch_running_build(nil)
+          end
+        rescue => ex
+          log.error('TeamCity HTTPError')
+          response.reply(t('error.request'))
+          return
+        end
+
+        return response.reply(t('runningbuildtypes.empty')) unless build_types.size > 0
+
+        response.reply(t('runningbuildtypes.list', runningbuildtypes: build_types))
+      end
+
+      def queue_all(response)
+        queue(response, false)
+      end
+
+      def queue_wild(response)
+        queue(response, true)
+      end
+
+      def queue(response, wildcard)
+        begin
+          if wildcard
+            build_types = fetch_queue_build(response.match_data['build_id'])
+          else
+            build_types = fetch_queue_build(nil)
+          end
+        rescue => ex
+          log.error('TeamCity HTTPError')
+          response.reply(t('error.request'))
+          return
+        end
+
+        return response.reply(t('runningbuildtypes.empty')) unless build_types.size > 0
+
+        response.reply(t('runningbuildtypes.list', runningbuildtypes: build_types))
       end
 
       #########################################
@@ -304,6 +392,106 @@ module Lita
         return response_str
       end
 
+      def fetch_running_build(build_id_wildcard)
+        response_str = ''
+        running_url = "#{config.site}/app/rest/builds?locator=running:true"
+        data = fetch_builds(running_url)
+
+        if (data.size > 0) && (data['build'])
+          data['build'].each do |build|
+            if build_id_wildcard
+              if build['buildTypeId'].include? build_id_wildcard
+                response_str << format_result_running_build(build)
+              end
+            else
+              response_str << format_result_running_build(build)
+            end
+          end
+        end
+
+        return response_str
+      end
+
+      def fetch_queue_build(build_id_wildcard)
+        response_str = ''
+        queue_url = "#{config.site}/app/rest/buildQueue"
+        data = fetch_builds(queue_url)
+
+        if (data.size > 0) && (data['build'])
+          data['build'].each do |build|
+            if build_id_wildcard
+              if build['buildTypeId'].include? build_id_wildcard
+                response_str << format_result_queue_build(build)
+              end
+            else
+              response_str << format_result_queue_build(build)
+            end
+          end
+        end
+
+        return response_str
+      end
+
+      def fetch_builds(build_url)
+        curl = Curl::Easy.new(build_url)
+        curl.http_auth_types = :basic
+        curl.username = config.username
+        curl.password = config.password
+        curl.headers["Accept"] = 'application/json'
+        curl.perform
+
+        data = JSON.parse(curl.body_str)
+
+        return data
+      end
+
+      def branch_name(build_id)
+        branch_url = "#{config.site}/app/rest/builds/id:#{build_id}/branch"
+        curl = Curl::Easy.new(branch_url)
+        curl.http_auth_types = :basic
+        curl.username = config.username
+        curl.password = config.password
+        curl.perform
+
+        data = curl.body_str
+        if data == "<default>"
+          data = "refs/heads/master"
+        elsif data == ""
+          data = ""
+        end
+
+        return data
+      end
+
+      def link_running_build(build_id, build_type_id)
+        return "#{config.site}/viewLog.html?buildId=#{build_id}&buildTypeId=#{build_type_id}"
+      end
+
+      def link_queue_build(build_id)
+        return "#{config.site}/viewQueued.html?itemId=#{build_id}"
+      end
+
+      def format_result_running_build(build)
+        branch = branch_name(build['id'])
+        if branch == ""
+          branch_text = ""
+        else
+          branch_text = " - #{branch}"
+        end
+        link = link_running_build(build['id'], build['buildTypeId'])
+        return "\n<#{link}|#{build['buildTypeId']}> (#{build['number']}) - `#{build['percentageComplete']}\%` complete#{branch_text}"
+      end
+
+      def format_result_queue_build(build)
+        branch = branch_name(build['id'])
+        if branch == ""
+          branch_text = ""
+        else
+          branch_text = " - #{branch}"
+        end
+        link = link_queue_build(build['id'])
+        return "\n<#{link}|#{build['buildTypeId']}>#{branch_text}"
+      end
     end
     Lita.register_handler(Teamcity)
   end

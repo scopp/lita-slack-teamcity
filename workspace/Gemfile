@@ -3,8 +3,8 @@ source 'https://rubygems.org'
 gem 'builder'
 gem 'curb'
 gem 'git'
-gem 'lita', '>=4.7.0'
+gem 'lita'
 gem 'lita-slack'
-gem 'nokogiri', '>=1.6.8'
+gem 'nokogiri'
 
 gemspec
