@@ -6,9 +6,9 @@ PATH
       eventmachine
       faraday
       faye-websocket (>= 0.8.0)
-      lita (>= 4.7.0)
+      lita (>= 4.6.0)
       multi_json
-      nokogiri (>= 1.7.2)
+      nokogiri (>= 1.6.8)
 
 GEM
   remote: https://rubygems.org/
