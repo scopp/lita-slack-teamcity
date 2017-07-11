@@ -19,6 +19,6 @@ export TEAMCITY_PASS=<teamcity password>
 
 # Commands for build bot
 - ```@buildbot list``` - Lists all possible builds you can trigger.
-- ```@buildbot list some_text*``` - Lists builds that match the case sensative wildcard by using `*`.
+- ```@buildbot list some_text*``` - Lists builds that match the case-sensitive wildcard by using `*`.
 - ```@buildbot build id``` - Triggers a master build for build `id`.
 - ```@buildbot build pr# for id``` - Triggers a PR build for passed in pr`#` and build `id`.

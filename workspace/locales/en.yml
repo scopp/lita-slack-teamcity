@@ -12,7 +12,7 @@ en:
             syntax: "*@buildbot list*"
             desc: "Lists all possible builds you can trigger"
             syntax_wild: "*@buildbot list `some_text*`*"
-            desc_wild: "Lists builds matching a case sensative wildcard search with `*`"
+            desc_wild: "Lists builds matching a case-sensitive wildcard search with `*`"
           build:
             syntax: "*@buildbot build `id`*"
             desc: "Triggers a master/trunk build for build `id`"
@@ -31,12 +31,12 @@ en:
             syntax: "*@buildbot running*"
             desc: "Lists all running builds and their status"
             syntax_wild: "*@buildbot running `some_text*`*"
-            desc_wild: "Lists running builds matching a case sensative wildcard search with `*`"
+            desc_wild: "Lists running builds matching a case-sensitive wildcard search with `*`"
           queue:
             syntax: "*@buildbot queue*"
             desc: "Lists all queued builds"
             syntax_wild: "*@buildbot queue `some_text*`*"
-            desc_wild: "Lists queued builds matching a case sensative wildcard search with `*`"
+            desc_wild: "Lists queued builds matching a case-sensitive wildcard search with `*`"
         buildtypes:
           empty: "Cannot find any builds to list!"
           list: "Here are the builds I found:\n%{build_types}
