@@ -479,7 +479,9 @@ module Lita
           branch_text = " - #{branch}"
         end
         link = link_running_build(build['id'], build['buildTypeId'])
-        return "\n<#{link}|#{build['buildTypeId']}> (#{build['number']}) - `#{build['percentageComplete']}\%` complete#{branch_text}"
+        time_left = remaining_time(build['id'])
+        return "\n<#{link}|#{build['buildTypeId']}> (#{build['number']}) - "\
+               "`#{build['percentageComplete']}\%` complete - `#{time_left}` left #{branch_text}"
       end
 
       def format_result_queue_build(build)
@@ -491,6 +493,32 @@ module Lita
         end
         link = link_queue_build(build['id'])
         return "\n<#{link}|#{build['buildTypeId']}>#{branch_text}"
+      end
+
+      def format_time(seconds)
+        strftime = ""
+        if seconds > 3600
+          strftime = "%Hh:%Mm:%Ss"
+        elsif seconds > 60
+          strftime = "%Mm:%Ss"
+        else
+          strftime = "%Ss"
+        end
+        return strftime
+      end
+
+      def remaining_time(build_id)
+        return_time = ""
+        build_url = "#{config.site}/app/rest/builds/id:#{build_id}"
+        data = fetch_builds(build_url)
+        if (data['running-info'])
+          totalSeconds = data['running-info']['estimatedTotalSeconds'].to_i
+          elapsedSeconds = data['running-info']['elapsedSeconds'].to_i
+          time_left = totalSeconds - elapsedSeconds
+          time_format = format_time(time_left)
+          return_time = Time.at(time_left).utc.strftime(time_format)
+        end
+        return return_time
       end
     end
     Lita.register_handler(Teamcity)
