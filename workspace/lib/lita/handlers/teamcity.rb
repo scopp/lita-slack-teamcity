@@ -394,7 +394,7 @@ module Lita
 
       def fetch_running_build(build_id_wildcard)
         response_str = ''
-        running_url = "#{config.site}/app/rest/builds?locator=running:true"
+        running_url = "#{config.site}/app/rest/builds?locator=running:true,branch:(default:any)"
         data = fetch_builds(running_url)
 
         if (data.size > 0) && (data['build'])
