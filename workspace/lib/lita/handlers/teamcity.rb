@@ -22,6 +22,8 @@ module Lita
       BRANCH_PATTERN          = /(?<branch>[a-zA-Z0-9\_]{1,100})/
       BUILD_ID_PATTERN        = /(?<build_id>[a-zA-Z0-9\_]{1,100})/
       REPO_PATTERN            = /(?<repo>.+)/
+      BUILD_TYPE_PATTERN      = /(?<build_type>[a-zA-Z0-9\_]{1,100})/
+      BUILD_NUMBER_PATTERN    = /(?<build_number>[0-9]{1,100})/
 
       route(
         /^list$/,
@@ -131,6 +133,24 @@ module Lita
         }
       )
 
+      route(
+        /^artifacts\s#{BUILD_TYPE_PATTERN}$/,
+        :artifacts_latest,
+        command: true,
+        help: {
+          t('help.artifacts.syntax') => t('help.artifacts.desc')
+        }
+      )
+
+      route(
+        /^artifacts\s#{BUILD_TYPE_PATTERN}\s#{BUILD_NUMBER_PATTERN}$/,
+        :artifacts_specific,
+        command: true,
+        help: {
+          t('help.artifacts.syntax_specific') => t('help.artifacts.desc_specific')
+        }
+      )
+ 
       def list_cps_to_commit(response)
         repo = response.match_data['repo']
         repo_uri = "#{config.git_uri}/#{repo}.git"
@@ -282,6 +302,35 @@ module Lita
         return response.reply(t('runningbuildtypes.empty')) unless build_types.size > 0
 
         response.reply(t('runningbuildtypes.list', runningbuildtypes: build_types))
+      end
+
+      def artifacts_latest(response)
+        artifacts(response, false)
+      end
+
+      def artifacts_specific(response)
+        artifacts(response, true)
+      end
+
+      def artifacts(response, have_build_number)
+        detail = ""
+        build_type = response.match_data['build_type']
+        build_id = ""
+        real_build_number = ""
+        if !have_build_number
+          build_id, real_build_number = id_build(build_type)
+        else
+          build_number = response.match_data['build_number']
+          build_id, real_build_number = id_build(build_type, build_number)
+        end
+        return response.reply(t('artifacts.error', 
+          buildtype:build_type, buildnumber: real_build_number)) unless build_id != ""
+
+        detail = artifacts_by_build_id(build_type, build_id)
+
+        response.reply(t('artifacts.list', 
+          build: format_artifacts_build(build_type, build_id, real_build_number), 
+          artifacts: detail))
       end
 
       #########################################
@@ -520,7 +569,58 @@ module Lita
         end
         return return_time
       end
+
+      def id_build(build_type, build_number = "")
+        id = ""
+        number = build_number
+        build_type_url = "#{config.site}/app/rest/builds/?locator=buildType:#{build_type},"+
+                         "status:SUCCESS,state:finished"
+        if build_number != ""
+          build_type_url = "#{build_type_url},number:#{build_number}"
+        end
+        begin
+          data = fetch_builds(build_type_url)
+        rescue
+          return id,number
+        end
+        if (data.size > 0) && (data['build']) && (data['build'][0])
+          id = data['build'][0]["id"]
+          number = data['build'][0]["number"]
+        end
+        return id,number
+      end
+
+      def artifacts_by_build_id(build_type, build_id)
+        result = ""
+        artifacts_url = "#{config.site}/app/rest/builds/id:#{build_id}/artifacts"
+        data = fetch_builds(artifacts_url)
+        if (data.size > 0) && (data['file'])
+          data['file'].each do |file|
+            artifact_name = file['name']
+            if artifact_name != ""
+              result = "#{result}\n#{format_artifact(artifact_name, build_type, build_id)}"
+            end
+          end
+        end
+        return result
+      end
+
+      def format_artifact(artifact_name, build_type, build_id)
+        artifact_url = "#{config.site}/repository/download/#{build_type}/#{build_id}:id"+
+                       "/#{artifact_name}"
+        return "<#{artifact_url}|#{artifact_name}>"
+      end
+
+      def format_artifacts_build(build_type, build_id, build_number)
+        artifacts_build_url = "#{link_running_build(build_id, build_type)}&tab=artifacts"
+        return "<#{artifacts_build_url}|#{build_type} (#{build_number})>"
+      end
+
+      def is_numeric(number)
+        true if Integer(number) rescue false
+      end
     end
+
     Lita.register_handler(Teamcity)
   end
 end

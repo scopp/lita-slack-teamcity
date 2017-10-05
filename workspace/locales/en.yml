@@ -37,6 +37,11 @@ en:
             desc: "Lists all queued builds"
             syntax_wild: "*@buildbot queue `some_text*`*"
             desc_wild: "Lists queued builds matching a case-sensitive wildcard search with `*`"
+          artifacts:
+            syntax: "*@buildbot artifacts `build_name`*"
+            desc: "Lists all artifacts of latest build"
+            syntax_specific: "*@buildbot artifacts `build_name` `build_number`*"
+            desc_specific: "Lists all artifacts of build_number"
         buildtypes:
           empty: "Cannot find any builds to list!"
           list: "Here are the builds I found:\n%{build_types}
@@ -45,3 +50,6 @@ en:
         runningbuildtypes:
           empty: "Cannot find any builds to list!"
           list: "Here are the builds I found:\n%{runningbuildtypes}"
+        artifacts:
+          error: "Cannot find build %{buildtype} (%{buildnumber})!"
+          list: "Here are the artifacts of %{build}:\n%{artifacts}"
