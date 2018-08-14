@@ -22,3 +22,10 @@ export TEAMCITY_PASS=<teamcity password>
 - ```@buildbot list some_text*``` - Lists builds that match the case-sensitive wildcard by using `*`.
 - ```@buildbot build id``` - Triggers a master build for build `id`.
 - ```@buildbot build pr# for id``` - Triggers a PR build for passed in pr`#` and build `id`.
+
+### Run rspec to execute unit test against specific function:
+```
+Step 1. Access vagrant ssh in VM
+Step 2. Cd to workspace folder: /srv/repos/lita-slack-jira-hockeyapp-mode/workspace
+Step 3. Run: bin/rspec <path-to-rpsec-file>
+```

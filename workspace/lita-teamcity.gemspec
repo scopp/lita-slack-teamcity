@@ -29,4 +29,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'pry-byebug'
   spec.add_development_dependency 'rack-test'
+  spec.add_development_dependency 'webmock',  '~> 1.24.6'
 end

@@ -1,3 +1,4 @@
 !.gitignore
 
 .vagrant
+*.DS_Store
