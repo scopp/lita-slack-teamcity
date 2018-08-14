@@ -521,6 +521,7 @@ module Lita
       end
 
       def format_result_running_build(build)
+        result = ""
         branch = branch_name(build['id'])
         if branch == ""
           branch_text = ""
@@ -528,9 +529,15 @@ module Lita
           branch_text = " - #{branch}"
         end
         link = link_running_build(build['id'], build['buildTypeId'])
-        time_left = remaining_time(build['id'])
-        return "\n<#{link}|#{build['buildTypeId']}> (#{build['number']}) - "\
-               "`#{build['percentageComplete']}\%` complete - `#{time_left}` left #{branch_text}"
+        time_diff, is_overtime = remaining_time(build['id'])
+        if is_overtime
+          result = "\n<#{link}|#{build['buildTypeId']}> (#{build['number']}) - "\
+                   "`#{build['percentageComplete']}\%` complete - Over time: `#{time_diff}`#{branch_text}"
+        else
+          result = "\n<#{link}|#{build['buildTypeId']}> (#{build['number']}) - "\
+                   "`#{build['percentageComplete']}\%` complete - Time left: `#{time_diff}`#{branch_text}"
+        end
+        return result
       end
 
       def format_result_queue_build(build)
@@ -558,16 +565,21 @@ module Lita
 
       def remaining_time(build_id)
         return_time = ""
+        is_overtime = false
         build_url = "#{config.site}/app/rest/builds/id:#{build_id}"
         data = fetch_builds(build_url)
         if (data['running-info'])
           totalSeconds = data['running-info']['estimatedTotalSeconds'].to_i
           elapsedSeconds = data['running-info']['elapsedSeconds'].to_i
-          time_left = totalSeconds - elapsedSeconds
-          time_format = format_time(time_left)
-          return_time = Time.at(time_left).utc.strftime(time_format)
+          time_diff = totalSeconds - elapsedSeconds
+          if time_diff < 0
+            is_overtime = true
+            time_diff = time_diff.abs
+          end
+          time_format = format_time(time_diff)
+          return_time = Time.at(time_diff).utc.strftime(time_format)
         end
-        return return_time
+        return return_time, is_overtime
       end
 
       def id_build(build_type, build_number = "")
