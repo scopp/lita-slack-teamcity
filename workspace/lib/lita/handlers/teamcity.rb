@@ -494,24 +494,6 @@ module Lita
         return data
       end
 
-      def branch_name(build_id)
-        branch_url = "#{config.site}/app/rest/builds/id:#{build_id}/branch"
-        curl = Curl::Easy.new(branch_url)
-        curl.http_auth_types = :basic
-        curl.username = config.username
-        curl.password = config.password
-        curl.perform
-
-        data = curl.body_str
-        if data == "<default>"
-          data = "refs/heads/master"
-        elsif data == ""
-          data = ""
-        end
-
-        return data
-      end
-
       def link_running_build(build_id, build_type_id)
         return "#{config.site}/viewLog.html?buildId=#{build_id}&buildTypeId=#{build_type_id}"
       end
@@ -522,11 +504,10 @@ module Lita
 
       def format_result_running_build(build)
         result = ""
-        branch = branch_name(build['id'])
-        if branch == ""
-          branch_text = ""
+        if build['branchName']
+          branch_text = " - #{build['branchName']}"
         else
-          branch_text = " - #{branch}"
+          branch_text = ""
         end
         link = link_running_build(build['id'], build['buildTypeId'])
         time_diff, is_overtime = remaining_time(build['id'])
@@ -541,11 +522,10 @@ module Lita
       end
 
       def format_result_queue_build(build)
-        branch = branch_name(build['id'])
-        if branch == ""
-          branch_text = ""
+        if build['branchName']
+          branch_text = " - #{build['branchName']}"
         else
-          branch_text = " - #{branch}"
+          branch_text = ""
         end
         link = link_queue_build(build['id'])
         return "\n<#{link}|#{build['buildTypeId']}>#{branch_text}"
