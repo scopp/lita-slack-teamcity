@@ -9,6 +9,33 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
     registry.config.handlers.teamcity.python_script    = 'python python_script.py'
   end
 
+  describe '#fetch_build_types' do
+    build_type_json_str = '{"buildType":[{"id":"Wildcard_A","projectName":"Wildcard :: A"},
+                                         {"id":"B_Wildcard","projectName":"Wildcard :: B"},
+                                         {"id":"C_Wildcard_C","projectName":"Wildcard :: C"},
+                                         {"id":"NoneProject","projectName":"None :: None"}]}'
+    before do
+      stub_request(:get, /buildTypes/).to_return(:status => 200, :body => build_type_json_str)
+    end
+
+    it 'response_str contains all builds if build_id_wildcard is nil' do
+      output_string = subject.fetch_build_types(nil)
+      expect(output_string).to include("Wildcard_A", "Wildcard :: A", "B_Wildcard", "Wildcard :: B", 
+                                       "C_Wildcard_C", "Wildcard :: C", "NoneProject", "None :: None")
+    end
+
+    it 'response_str contains all builds that build_id contains build_id_wildcard' do
+      output_string = subject.fetch_build_types("Wildcard")
+      expect(output_string).to include("Wildcard_A", "Wildcard :: A", "B_Wildcard", "Wildcard :: B", 
+                                       "C_Wildcard_C", "Wildcard :: C")
+    end
+
+    it 'response_str is empty if no build_id contains build_id_wildcard' do
+      output_string = subject.fetch_build_types("Invalid")
+      expect(output_string).to eq("")
+    end
+  end
+
   describe '#artifacts_by_build_id' do
     build_type = "CozmoOne_MasterBuild"
     build_id = "4307"
