@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency 'faraday'
   spec.add_runtime_dependency 'faye-websocket', '>= 0.8.0'
   spec.add_runtime_dependency 'multi_json'
-  spec.add_runtime_dependency 'nokogiri', '>= 1.6.8'
+  spec.add_runtime_dependency 'nokogiri', '>= 1.8.3'
 
   spec.add_development_dependency 'bundler', '~> 1.3'
   spec.add_development_dependency 'coveralls'
