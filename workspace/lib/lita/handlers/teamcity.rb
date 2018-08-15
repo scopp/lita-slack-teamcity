@@ -328,9 +328,13 @@ module Lita
 
         detail = artifacts_by_build_id(build_type, build_id)
 
-        response.reply(t('artifacts.list', 
-          build: format_artifacts_build(build_type, build_id, real_build_number), 
-          artifacts: detail))
+        if detail.empty?
+          response.reply(t('artifacts.empty', buildnumber: build_number))
+        else 
+          response.reply(t('artifacts.list', 
+                            build: format_artifacts_build(build_type, build_id, real_build_number), 
+                            artifacts: detail))
+        end
       end
 
       #########################################
@@ -446,7 +450,7 @@ module Lita
         running_url = "#{config.site}/app/rest/builds?locator=running:true,branch:(default:any)"
         data = fetch_builds(running_url)
 
-        if (data.size > 0) && (data['build'])
+        if (data['count'] > 0) && (data['build'].any?)
           data['build'].each do |build|
             if build_id_wildcard
               if build['buildTypeId'].include? build_id_wildcard
@@ -466,7 +470,7 @@ module Lita
         queue_url = "#{config.site}/app/rest/buildQueue"
         data = fetch_builds(queue_url)
 
-        if (data.size > 0) && (data['build'])
+        if (data['count'] > 0) && (data['build'].any?)
           data['build'].each do |build|
             if build_id_wildcard
               if build['buildTypeId'].include? build_id_wildcard
@@ -575,7 +579,7 @@ module Lita
         rescue
           return id,number
         end
-        if (data.size > 0) && (data['build']) && (data['build'][0])
+        if (data['count'] > 0) && (data['build'].any?)
           id = data['build'][0]["id"]
           number = data['build'][0]["number"]
         end
@@ -586,7 +590,7 @@ module Lita
         result = ""
         artifacts_url = "#{config.site}/app/rest/builds/id:#{build_id}/artifacts"
         data = fetch_builds(artifacts_url)
-        if (data.size > 0) && (data['file'])
+        if (data['count'] > 0) && (data['file'].any?)
           data['file'].each do |file|
             artifact_name = file['name']
             if artifact_name != ""

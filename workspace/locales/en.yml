@@ -53,3 +53,4 @@ en:
         artifacts:
           error: "Cannot find build %{buildtype} (%{buildnumber})!"
           list: "Here are the artifacts of %{build}:\n%{artifacts}"
+          empty: "No artifact was found in the given build number (%{buildnumber})!"
