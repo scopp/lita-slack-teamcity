@@ -26,6 +26,6 @@ export TEAMCITY_PASS=<teamcity password>
 ### Run rspec to execute unit test against specific function:
 ```
 Step 1. Access vagrant ssh in VM
-Step 2. Cd to workspace folder: /srv/repos/lita-slack-jira-hockeyapp-mode/workspace
+Step 2. Cd to workspace folder: /srv/repos/lita-slack-teamcity/workspace
 Step 3. Run: bin/rspec <path-to-rpsec-file>
 ```

@@ -9,6 +9,23 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
     registry.config.handlers.teamcity.python_script    = 'python python_script.py'
   end
 
+  describe '#format_result_queue_build' do
+    build_json_str_without_branch = '{"id":11111,"buildTypeId":"CozmoOne_MasterBuild",
+                                      "number":"111","percentageComplete":80}'
+    build_json_str = '{"id":11111,"buildTypeId":"CozmoOne_MasterBuild",
+                       "number":"111","branchName":"BI-123-XYZ","percentageComplete":80}'  
+
+    it 'result not contains branch path if branch is empty' do
+      output_string = subject.format_result_queue_build(JSON.parse(build_json_str_without_branch))
+      expect(output_string).not_to end_with "- "
+    end
+
+    it 'result contains branch text if branch is not empty' do
+      output_string = subject.format_result_queue_build(JSON.parse(build_json_str))
+      expect(output_string).to end_with "- BI-123-XYZ"
+    end
+  end
+
   describe '#fetch_build_types' do
     build_type_json_str = '{"buildType":[{"id":"Wildcard_A","projectName":"Wildcard :: A"},
                                          {"id":"B_Wildcard","projectName":"Wildcard :: B"},
