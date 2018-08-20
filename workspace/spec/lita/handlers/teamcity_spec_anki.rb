@@ -9,6 +9,41 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
     registry.config.handlers.teamcity.python_script    = 'python python_script.py'
   end
 
+  describe '#format_result_running_build' do
+    build_json_str_without_branch = '{"id":11111,"buildTypeId":"CozmoOne_MasterBuild",
+                                      "number":"111","percentageComplete":80}'
+    build_json_str = '{"id":11111,"buildTypeId":"CozmoOne_MasterBuild",
+                       "number":"111","branchName":"BI-123-XYZ","percentageComplete":80}'
+    running_build_json_overtime = '{"id":111111,"running-info":
+                          {"elapsedSeconds":5000,"estimatedTotalSeconds":4000}}' 
+    running_build_json = '{"id":111111,"running-info":
+                          {"elapsedSeconds":4000,"estimatedTotalSeconds":5000}}'   
+
+    it 'result not contains branch path if branch is empty' do
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json)
+      output_string = subject.format_result_running_build(JSON.parse(build_json_str_without_branch))
+      expect(output_string).not_to end_with "- "
+    end
+
+    it 'result contains branch text if branch is not empty' do
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json)
+      output_string = subject.format_result_running_build(JSON.parse(build_json_str))
+      expect(output_string).to end_with "- BI-123-XYZ"
+    end
+
+    it 'result contains overtime part if build is overtime' do
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json_overtime)
+      output_string = subject.format_result_running_build(JSON.parse(build_json_str))
+      expect(output_string).to include("- Over time:")
+    end
+
+    it 'result contains time left part if build is not overtime' do
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json)
+      output_string = subject.format_result_running_build(JSON.parse(build_json_str))
+      expect(output_string).to include("- Time left:")
+    end
+  end
+  
   describe '#format_result_queue_build' do
     build_json_str_without_branch = '{"id":11111,"buildTypeId":"CozmoOne_MasterBuild",
                                       "number":"111","percentageComplete":80}'
@@ -91,6 +126,5 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
       output_string = subject.artifacts_by_build_id(build_type, build_id)
       expect(output_string).to eq(expected_output)
     end
-
   end
 end
