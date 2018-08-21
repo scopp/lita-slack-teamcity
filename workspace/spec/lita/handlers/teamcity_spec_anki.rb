@@ -9,6 +9,33 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
     registry.config.handlers.teamcity.python_script    = 'python python_script.py'
   end
 
+  describe '#remaining_time' do
+    build_id = "111111"
+
+    it 'return empty string if build is not in running state' do
+      running_build_json = '{"id":111111}'
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json)
+      return_time, is_overtime = subject.remaining_time(build_id)
+      expect([return_time, is_overtime]).to eq(["", false])
+    end
+
+    it 'time left is formatted correctly when elapsedSeconds > estimatedTotalSeconds' do
+      running_build_json = '{"id":111111,"running-info":
+                            {"percentageComplete":80,"elapsedSeconds":5000,"estimatedTotalSeconds":4000}}'
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json)
+      return_time, is_overtime = subject.remaining_time(build_id)
+      expect([return_time, is_overtime]).to eq(["16m:40s", true])
+    end
+
+    it 'time left is formatted correctly when elapsedSeconds < estimatedTotalSeconds' do
+      running_build_json = '{"id":111111,"running-info":
+                            {"percentageComplete":80,"elapsedSeconds":4000,"estimatedTotalSeconds":5000}}'
+      stub_request(:get, /id:/).to_return(:status => 200, :body => running_build_json)
+      return_time, is_overtime = subject.remaining_time(build_id)
+      expect([return_time, is_overtime]).to eq(["16m:40s", false])
+    end
+  end
+  
   describe '#format_result_running_build' do
     build_json_str_without_branch = '{"id":11111,"buildTypeId":"CozmoOne_MasterBuild",
                                       "number":"111","percentageComplete":80}'
