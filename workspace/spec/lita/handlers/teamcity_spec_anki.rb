@@ -9,6 +9,47 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
     registry.config.handlers.teamcity.python_script    = 'python python_script.py'
   end
 
+  describe '#id_build' do
+    build_type = "CozmoOne_MasterBuild"
+    build_number = "333"
+
+    it 'Return latest success build if no build_number was provided' do
+      success_build_json = '{"count":2,"build":[{"id":11111,"buildTypeId":"CozmoOne_MasterBuild","number":"111"},
+                                                {"id":22222,"buildTypeId":"CozmoOne_MasterBuild","number":"222"}]}'
+      build_by_id_json = '{"count":1,"build":[{"id":33333,"buildTypeId":"CozmoOne_MasterBuild","number":"333"}]}'
+      stub_request(:get, /status:SUCCESS,state:finished/).to_return(:status => 200, :body => success_build_json)
+      stub_request(:get, /number:/).to_return(:status => 200, :body => build_by_id_json)
+
+      id, number = subject.id_build(build_type)
+      expect([id, number]).to eq([11111, "111"])
+    end
+
+    it 'Return build with provided build_number if it is provided' do
+      success_build_json = '{"count":2,"build":[{"id":11111,"buildTypeId":"CozmoOne_MasterBuild","number":"111"},
+                                                {"id":22222,"buildTypeId":"CozmoOne_MasterBuild","number":"222"}]}'
+      build_by_id_json = '{"count":1,"build":[{"id":33333,"buildTypeId":"CozmoOne_MasterBuild","number":"333"}]}'
+      stub_request(:get, /status:SUCCESS,state:finished/).to_return(:status => 200, :body => success_build_json)
+      stub_request(:get, /number:/).to_return(:status => 200, :body => build_by_id_json)
+
+      id, number = subject.id_build(build_type, build_number)
+      expect([id, number]).to eq([33333, "333"])
+    end
+
+    it 'Return empty build id and inputted build number if any exceptions was throw out.' do
+      stub_request(:get, /status:SUCCESS,state:finished/).to_raise(StandardError)
+      id, number = subject.id_build(build_type)
+      expect([id, number]).to eq(["", ""])
+    end
+
+    it 'Return empty build id and inputted build number if no build was found.' do
+      success_build_json = '{"count":0,"build":[]}'
+      stub_request(:get, /status:SUCCESS,state:finished/).to_return(:status => 200, :body => success_build_json)
+
+      id, number = subject.id_build(build_type, build_number)
+      expect([id, number]).to eq(["", build_number])
+    end
+  end
+  
   describe '#remaining_time' do
     build_id = "111111"
 
