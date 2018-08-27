@@ -195,4 +195,22 @@ describe Lita::Handlers::Teamcity, lita_handler: true do
       expect(output_string).to eq(expected_output)
     end
   end
+  
+  describe '#format_time' do
+
+    it 'format_time with time > 3600' do
+      output_string = subject.format_time(3700)
+      expect(output_string).to eq("%Hh:%Mm:%Ss")
+    end
+
+    it 'format_time with time > 60 and <= 3600' do
+      output_string = subject.format_time(3600)
+      expect(output_string).to eq("%Mm:%Ss")
+    end
+
+    it 'format_time with time <= 60' do
+      output_string = subject.format_time(60)
+      expect(output_string).to eq("%Ss")
+    end
+  end
 end
